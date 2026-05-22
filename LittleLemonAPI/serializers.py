@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from .models import Order, OrderItem, MenuItem, Cart, Category
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField, CurrentUserDefault
 
 class UserSerializer(ModelSerializer):
     class Meta:
@@ -12,17 +12,20 @@ class CategorySerializer(ModelSerializer):
         model = Category
         fields = ['id', 'slug', 'title']
 
-class CartSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = Cart
-        fields = ['id', 'user', 'quantity', 'unit_price']
-
-
 class MenuItemSerializer(ModelSerializer):
     class Meta:
         model = MenuItem
         fields = ['id', 'title', 'price', 'featured', 'category']
+
+class CartSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    menuitem = PrimaryKeyRelatedField(
+        queryset= MenuItem.objects.all(),
+        write_only=True
+    )
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'menuitem', 'quantity', 'unit_price']
 
 class OrderItemSerializer(ModelSerializer):
     menu_item = MenuItemSerializer(read_only=True)
